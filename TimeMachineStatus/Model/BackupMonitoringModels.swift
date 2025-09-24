@@ -74,6 +74,13 @@ enum BackupSchedule: String, CaseIterable {
     }
 }
 
+enum IconState {
+    case normal
+    case warningDefault  // Warning state - default menu bar color (white)
+    case warningYellow   // Warning state - yellow
+    case warningRed      // Warning state - red
+}
+
 @Observable
 class DeviceMonitoringConfig {
     var destinationID: UUID
@@ -188,6 +195,31 @@ class BackupMonitoringManager {
             config.consecutiveMissedBackups = 0
             config.lastNotificationSent = nil
             config.cancelPendingNotifications()
+        }
+    }
+
+    func getCurrentIconState(showWarningIcon: Bool, colorWarningIcon: Bool) -> IconState {
+        guard showWarningIcon && isMonitoringEnabled else { return .normal }
+
+        // Check all monitored devices for missed backups
+        let allMissedBackups = deviceConfigs.values
+            .filter { $0.isMonitored }
+            .compactMap { config -> Int? in
+                guard config.isOverdue else { return nil }
+                return config.missedBackupCount
+            }
+
+        guard let maxMissedBackups = allMissedBackups.max(), maxMissedBackups > 0 else {
+            return .normal
+        }
+
+        // First check if color coding is enabled
+        if colorWarningIcon {
+            // Color coding enabled: use yellow for 1 missed, red for 2+ missed
+            return maxMissedBackups >= 2 ? .warningRed : .warningYellow
+        } else {
+            // Color coding disabled: always show white triangle regardless of backup count
+            return .warningDefault
         }
     }
 }

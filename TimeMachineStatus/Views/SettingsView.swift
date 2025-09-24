@@ -32,6 +32,8 @@ enum StorageKeys {
     static let animateIcon = Key(id: "animateIcon", default: true)
 
     static let logLevel = Key(id: "logLevel", default: Logger.Level.info)
+    static let showWarningIcon = Key(id: "showWarningIcon", default: false)
+    static let colorWarningIcon = Key(id: "colorWarningIcon", default: false)
 }
 
 struct SettingsView: View {
@@ -68,6 +70,12 @@ struct SettingsView: View {
 
     @AppStorage(StorageKeys.logLevel.id)
     private var logLevel: Logger.Level = StorageKeys.logLevel.default
+
+    @AppStorage(StorageKeys.showWarningIcon.id)
+    private var showWarningIcon: Bool = StorageKeys.showWarningIcon.default
+
+    @AppStorage(StorageKeys.colorWarningIcon.id)
+    private var colorWarningIcon: Bool = StorageKeys.colorWarningIcon.default
 
     enum Tabs: Hashable, CaseIterable {
         case general
@@ -264,6 +272,7 @@ struct SettingsView: View {
     private var notificationsTab: some View {
         Form {
             globalMonitoringSettingsSection
+            iconAlertSettingsSection
             if let destinations = utility.preferences?.destinations, !destinations.isEmpty {
                 deviceMonitoringSettingsSection(destinations: destinations)
             }
@@ -303,6 +312,36 @@ struct SettingsView: View {
                     }
                 }
                 .pickerStyle(.menu)
+            }
+        }
+    }
+
+    private var iconAlertSettingsSection: some View {
+        Section("Icon Alerts") {
+            Toggle("Change icon when backup missed", isOn: $showWarningIcon)
+
+            if showWarningIcon {
+                Toggle("Color-code missed backups", isOn: $colorWarningIcon)
+
+                if colorWarningIcon {
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundStyle(.yellow)
+                            Text("Yellow: 1 missed backup")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        HStack(spacing: 8) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundStyle(.red)
+                            Text("Red: 2+ missed backups")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .padding(.leading, 8)
+                }
             }
         }
     }
