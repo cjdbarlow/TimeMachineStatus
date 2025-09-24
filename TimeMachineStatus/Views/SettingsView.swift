@@ -72,6 +72,7 @@ struct SettingsView: View {
     enum Tabs: Hashable, CaseIterable {
         case general
         case appearance
+        case notifications
         case about
 
         var height: Double {
@@ -79,6 +80,7 @@ struct SettingsView: View {
             case .about: 350
             case .appearance: 450
             case .general: 320
+            case .notifications: 400
             }
         }
 
@@ -91,6 +93,7 @@ struct SettingsView: View {
     @StateObject private var launchItemProvider = LaunchItemProvider()
     @ObservedObject private var updaterViewModel: UpdaterViewModel
     @State private var utility: any TMUtility
+    @State private var notificationManager = BackupNotificationManager.shared
     private let updater: SPUUpdater
 
     init(updater: SPUUpdater, utility: any TMUtility, selection: Tabs = .general) {
@@ -104,12 +107,19 @@ struct SettingsView: View {
         TabView(selection: $selection) {
             generalTab
             appearandeTab
+            notificationsTab
             aboutTab
         }
         .frame(
             width: Constants.Sizes.settingsWidth,
             height: isPreview ? Tabs.largestHeight : selection.height
         )
+        .onAppear {
+            notificationManager.updateDeviceInfo(from: utility.preferences)
+        }
+        .onChange(of: utility.lastUpdated) { _, _ in
+            notificationManager.updateDeviceInfo(from: utility.preferences)
+        }
     }
 
     @State private var showPicker: Bool = false
@@ -251,6 +261,66 @@ struct SettingsView: View {
         .tag(Tabs.appearance)
     }
 
+    private var notificationsTab: some View {
+        Form {
+            globalMonitoringSettingsSection
+            if let destinations = utility.preferences?.destinations, !destinations.isEmpty {
+                deviceMonitoringSettingsSection(destinations: destinations)
+            }
+        }
+        .formStyle(.grouped)
+        .tabItem {
+            Label("Notifications", systemImage: "bell")
+        }
+        .tag(Tabs.notifications)
+        .onChange(of: notificationManager.monitoringManager.isMonitoringEnabled) { _, isEnabled in
+            if isEnabled {
+                notificationManager.startMonitoring()
+            } else {
+                notificationManager.stopMonitoring()
+            }
+        }
+        .onChange(of: notificationManager.monitoringManager.checkInterval) { _, _ in
+            if notificationManager.monitoringManager.isMonitoringEnabled {
+                notificationManager.startMonitoring()
+            }
+        }
+    }
+
+    private var globalMonitoringSettingsSection: some View {
+        Section("Backup Monitoring") {
+            Toggle("Enable Backup Monitoring", isOn: $notificationManager.monitoringManager.isMonitoringEnabled)
+                .onChange(of: notificationManager.monitoringManager.isMonitoringEnabled) { _, isEnabled in
+                    if isEnabled {
+                        notificationManager.updateDeviceInfo(from: utility.preferences)
+                    }
+                }
+
+            if notificationManager.monitoringManager.isMonitoringEnabled {
+                Picker("Check for missed backups", selection: $notificationManager.monitoringManager.checkInterval) {
+                    ForEach(MonitoringInterval.allCases, id: \.rawValue) { interval in
+                        Text(interval.displayName).tag(interval)
+                    }
+                }
+                .pickerStyle(.menu)
+            }
+        }
+    }
+
+    private func deviceMonitoringSettingsSection(destinations: [Destination]) -> some View {
+        Section("Time Machine Destinations") {
+            ForEach(destinations, id: \.destinationID) { destination in
+                let config = notificationManager.monitoringManager.getOrCreateConfig(for: destination.destinationID)
+
+                DeviceConfigRow(
+                    destination: destination,
+                    config: config,
+                    isGloballyEnabled: notificationManager.monitoringManager.isMonitoringEnabled
+                )
+            }
+        }
+    }
+
     private var aboutTab: some View {
         VStack(spacing: 20) {
             VStack(spacing: 8) {
@@ -278,6 +348,99 @@ struct SettingsView: View {
             Label("settings_tab_item_about", systemSymbol: .infoCircle)
         }
         .tag(Tabs.about)
+    }
+}
+
+private struct DeviceConfigRow: View {
+    let destination: Destination
+    @State var config: DeviceMonitoringConfig
+    let isGloballyEnabled: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(destination.lastKnownVolumeName ?? "Unknown Device")
+                        .font(.headline)
+                    if let networkURL = destination.networkURL {
+                        Text(networkURL)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Spacer()
+                Toggle("Monitor this device", isOn: $config.isMonitored)
+                    .labelsHidden()
+                    .disabled(!isGloballyEnabled)
+            }
+
+            if config.isMonitored && isGloballyEnabled {
+                Divider()
+
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(spacing: 4) {
+                        Text("Alert after")
+                        Stepper(
+                            value: $config.missedBackupThreshold,
+                            in: 1...10,
+                            step: 1
+                        ) {
+                            Text("\(config.missedBackupThreshold) missed backup\(config.missedBackupThreshold == 1 ? "" : "s")")
+                        }
+                    }
+
+                    HStack(spacing: 4) {
+                        Text("Send")
+                        Stepper(
+                            value: $config.notificationCount,
+                            in: 1...5,
+                            step: 1
+                        ) {
+                            Text("\(config.notificationCount) notification\(config.notificationCount == 1 ? "" : "s...")")
+                        }
+                    }
+
+                    if config.notificationCount > 1 {
+                        HStack(spacing: 4) {
+                            Text("...every")
+                            Picker("", selection: $config.notificationSpacing) {
+                                ForEach(NotificationSpacing.allCases, id: \.rawValue) { spacing in
+                                    Text(spacing.displayName).tag(spacing)
+                                }
+                            }
+                            .pickerStyle(.menu)
+                        }
+                    }
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(config.backupSchedule.displayName)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+
+                        if let lastBackupDate = destination.snapshotDates?.last {
+                            let timeString: String = {
+                                let formatter = RelativeDateTimeFormatter()
+                                formatter.unitsStyle = .full
+                                return formatter.localizedString(for: lastBackupDate, relativeTo: Date())
+                            }()
+                            Text("Last backup: \(timeString)")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        } else {
+                            Text("Last backup: Never")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            }
+        }
+        .padding(.vertical, 4)
+        .onAppear {
+            config.deviceName = destination.lastKnownVolumeName
+            config.mountPoint = destination.networkURL
+            config.lastBackupDate = destination.snapshotDates?.last
+        }
     }
 }
 

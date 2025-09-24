@@ -65,6 +65,8 @@
 		28FAD5AB2AFE9BF300F642E7 /* CustomLabeledContentStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28FAD5AA2AFE9BF300F642E7 /* CustomLabeledContentStyle.swift */; };
 		28FAD5AD2AFF0D7200F642E7 /* ExpandableSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28FAD5AC2AFF0D7200F642E7 /* ExpandableSection.swift */; };
 		28FAD5AF2AFF0D9600F642E7 /* UserfacingErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28FAD5AE2AFF0D9600F642E7 /* UserfacingErrorView.swift */; };
+		E371D90B2E84ABB000EF8AB9 /* BackupMonitoringModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = E371D90A2E84ABB000EF8AB9 /* BackupMonitoringModels.swift */; };
+		E371D90D2E84ABC200EF8AB9 /* BackupNotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E371D90C2E84ABC200EF8AB9 /* BackupNotificationManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -140,6 +142,8 @@
 		28FAD5AA2AFE9BF300F642E7 /* CustomLabeledContentStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomLabeledContentStyle.swift; sourceTree = "<group>"; };
 		28FAD5AC2AFF0D7200F642E7 /* ExpandableSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpandableSection.swift; sourceTree = "<group>"; };
 		28FAD5AE2AFF0D9600F642E7 /* UserfacingErrorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserfacingErrorView.swift; sourceTree = "<group>"; };
+		E371D90A2E84ABB000EF8AB9 /* BackupMonitoringModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupMonitoringModels.swift; sourceTree = "<group>"; };
+		E371D90C2E84ABC200EF8AB9 /* BackupNotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupNotificationManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -289,6 +293,7 @@
 		28A002502AFC039500E2A01E /* ViewModel */ = {
 			isa = PBXGroup;
 			children = (
+				E371D90C2E84ABC200EF8AB9 /* BackupNotificationManager.swift */,
 				28A002512AFC03A200E2A01E /* TMUtility.swift */,
 				28F2D43F2B02560400B75998 /* LaunchItemProvider.swift */,
 				28F2D4462B02F62400B75998 /* UpdaterViewModel.swift */,
@@ -299,6 +304,7 @@
 		28A002532AFC03D700E2A01E /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				E371D90A2E84ABB000EF8AB9 /* BackupMonitoringModels.swift */,
 				28A0026A2AFC0CB300E2A01E /* Preferences */,
 				28A002692AFC0CAB00E2A01E /* BackupState */,
 			);
@@ -527,6 +533,8 @@
 				2818227A2AFE292A0067E564 /* UserfacingError.swift in Sources */,
 				2818226C2AFD8E9F0067E564 /* _BaseState.swift in Sources */,
 				28A0021B2AFBBFC300E2A01E /* TimeMachineStatusApp.swift in Sources */,
+				E371D90D2E84ABC200EF8AB9 /* BackupNotificationManager.swift in Sources */,
+				E371D90B2E84ABB000EF8AB9 /* BackupMonitoringModels.swift in Sources */,
 				28A002582AFC042200E2A01E /* BackupStateError.swift in Sources */,
 				28A0024D2AFC02DA00E2A01E /* Bool+.swift in Sources */,
 				280AF0DA2CAD3409000B389B /* InitializeView.swift in Sources */,

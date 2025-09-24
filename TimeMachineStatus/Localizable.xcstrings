@@ -17,6 +17,29 @@
         }
       }
     },
+    "...every" : {
+
+    },
+    "%lld missed backup%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld missed backup%2$@"
+          }
+        }
+      }
+    },
+    "%lld notification%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld notification%2$@"
+          }
+        }
+      }
+    },
     "about_copyright" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -62,6 +85,12 @@
           }
         }
       }
+    },
+    "Alert after" : {
+
+    },
+    "Backup Monitoring" : {
+
     },
     "button_backup_to_%@_now" : {
       "extractionState" : "manual",
@@ -446,6 +475,9 @@
           }
         }
       }
+    },
+    "Check for missed backups" : {
+
     },
     "D" : {
       "extractionState" : "manual",
@@ -1564,6 +1596,9 @@
         }
       }
     },
+    "Enable Backup Monitoring" : {
+
+    },
     "error_debug_description%@" : {
       "localizations" : {
         "de" : {
@@ -2020,6 +2055,18 @@
         }
       }
     },
+    "Last backup: %@" : {
+
+    },
+    "Last backup: Never" : {
+
+    },
+    "Monitor this device" : {
+
+    },
+    "Notifications" : {
+
+    },
     "section_destinations" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2065,6 +2112,9 @@
           }
         }
       }
+    },
+    "Send" : {
+
     },
     "settings_button_checkforupdates" : {
       "localizations" : {
@@ -2721,6 +2771,9 @@
           }
         }
       }
+    },
+    "Time Machine Destinations" : {
+
     },
     "window_title" : {
       "extractionState" : "manual",
