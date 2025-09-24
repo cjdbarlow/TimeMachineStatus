@@ -476,7 +476,13 @@
         }
       }
     },
+    "Change icon when backup missed" : {
+
+    },
     "Check for missed backups" : {
+
+    },
+    "Color-code missed backups" : {
 
     },
     "D" : {
@@ -1919,6 +1925,9 @@
         }
       }
     },
+    "Icon Alerts" : {
+
+    },
     "label_autobackupdisabled" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2065,6 +2074,9 @@
 
     },
     "Notifications" : {
+
+    },
+    "Red: 2+ missed backups" : {
 
     },
     "section_destinations" : {
@@ -2797,6 +2809,9 @@
           }
         }
       }
+    },
+    "Yellow: 1 missed backup" : {
+
     }
   },
   "version" : "1.0"

@@ -55,18 +55,52 @@ struct StatusBarItem: View {
     @AppStorage(StorageKeys.animateIcon.id)
     private var animateIcon: Bool = StorageKeys.animateIcon.default
 
+    @AppStorage(StorageKeys.showWarningIcon.id)
+    private var showWarningIcon: Bool = StorageKeys.showWarningIcon.default
+
+    @AppStorage(StorageKeys.colorWarningIcon.id)
+    private var colorWarningIcon: Bool = StorageKeys.colorWarningIcon.default
+
     var sizePassthrough: PassthroughSubject<CGSize, Never>
     @State var utility: TMUtilityImpl
+    @State private var notificationManager = BackupNotificationManager.shared
 
     private let log = Logger(label: "\(Bundle.identifier).StatusBarItem")
+
+    private var currentIconState: IconState {
+        notificationManager.monitoringManager.getCurrentIconState(
+            showWarningIcon: showWarningIcon,
+            colorWarningIcon: colorWarningIcon
+        )
+    }
 
     private var mainContent: some View {
         HStack(spacing: spacing) {
             if utility.isIdle {
-                Image(
-                    systemSymbol: utility.hasFailedBackup ? .exclamationmarkArrowCirclepath : .clockArrowCirclepath
-                )
-                .font(.body.weight(boldIcon ? .bold : .medium))
+                // Priority 1: Always show red triangle for failed backups
+                if utility.hasFailedBackup {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.body.weight(boldIcon ? .bold : .medium))
+                        .foregroundStyle(.red)
+                } else {
+                    // Priority 2: Show missed backup warnings based on user settings
+                    switch currentIconState {
+                    case .normal:
+                        Image(systemSymbol: .clockArrowCirclepath)
+                            .font(.body.weight(boldIcon ? .bold : .medium))
+                    case .warningDefault:
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.body.weight(boldIcon ? .bold : .medium))
+                    case .warningYellow:
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.body.weight(boldIcon ? .bold : .medium))
+                            .foregroundStyle(.yellow)
+                    case .warningRed:
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.body.weight(boldIcon ? .bold : .medium))
+                            .foregroundStyle(.red)
+                    }
+                }
             } else {
                 if animateIcon {
                     AnimatedIcon()
@@ -109,6 +143,12 @@ struct StatusBarItem: View {
             .offset(y: -1)
             .onChange(of: utility.isIdle) { oldValue, newValue in
                 log.trace("Changed: \(oldValue) -> \(newValue)")
+            }
+            .onChange(of: utility.lastUpdated) { _, _ in
+                notificationManager.updateDeviceInfo(from: utility.preferences)
+            }
+            .onAppear {
+                notificationManager.updateDeviceInfo(from: utility.preferences)
             }
             .overlay(alignment: .topTrailing) {
                 #if DEBUG
