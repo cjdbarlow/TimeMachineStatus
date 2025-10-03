@@ -77,29 +77,22 @@ struct StatusBarItem: View {
     private var mainContent: some View {
         HStack(spacing: spacing) {
             if utility.isIdle {
-                // Priority 1: Always show red triangle for failed backups
-                if utility.hasFailedBackup {
+                // Change the icon to show missed backup warnings based on user settings
+                switch currentIconState {
+                case .normal:
+                    Image(systemSymbol: .clockArrowCirclepath)
+                        .font(.body.weight(boldIcon ? .bold : .medium))
+                case .warningDefault:
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.body.weight(boldIcon ? .bold : .medium))
+                case .warningYellow:
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.body.weight(boldIcon ? .bold : .medium))
+                        .foregroundStyle(.yellow)
+                case .warningRed:
                     Image(systemName: "exclamationmark.triangle.fill")
                         .font(.body.weight(boldIcon ? .bold : .medium))
                         .foregroundStyle(.red)
-                } else {
-                    // Priority 2: Show missed backup warnings based on user settings
-                    switch currentIconState {
-                    case .normal:
-                        Image(systemSymbol: .clockArrowCirclepath)
-                            .font(.body.weight(boldIcon ? .bold : .medium))
-                    case .warningDefault:
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .font(.body.weight(boldIcon ? .bold : .medium))
-                    case .warningYellow:
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .font(.body.weight(boldIcon ? .bold : .medium))
-                            .foregroundStyle(.yellow)
-                    case .warningRed:
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .font(.body.weight(boldIcon ? .bold : .medium))
-                            .foregroundStyle(.red)
-                    }
                 }
             } else {
                 if animateIcon {
