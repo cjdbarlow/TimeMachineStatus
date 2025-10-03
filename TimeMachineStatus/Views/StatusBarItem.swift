@@ -61,6 +61,12 @@ struct StatusBarItem: View {
     @AppStorage(StorageKeys.colorWarningIcon.id)
     private var colorWarningIcon: Bool = StorageKeys.colorWarningIcon.default
 
+    @AppStorage(StorageKeys.iconAlertMode.id)
+    private var iconAlertMode: IconAlertMode = StorageKeys.iconAlertMode.default
+
+    @AppStorage(StorageKeys.iconAlertTimeThreshold.id)
+    private var iconAlertTimeThreshold: Double = StorageKeys.iconAlertTimeThreshold.default
+
     var sizePassthrough: PassthroughSubject<CGSize, Never>
     @State var utility: TMUtilityImpl
     @State private var notificationManager = BackupNotificationManager.shared
@@ -69,8 +75,8 @@ struct StatusBarItem: View {
 
     private var currentIconState: IconState {
         notificationManager.monitoringManager.getCurrentIconState(
-            showWarningIcon: showWarningIcon,
-            colorWarningIcon: colorWarningIcon
+            iconAlertMode: iconAlertMode,
+            timeThreshold: iconAlertTimeThreshold
         )
     }
 

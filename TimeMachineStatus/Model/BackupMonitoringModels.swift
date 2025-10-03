@@ -74,6 +74,20 @@ enum BackupSchedule: String, CaseIterable {
     }
 }
 
+enum IconAlertMode: String, CaseIterable {
+    case none = "None"
+    case countBased = "Count-based"
+    case timeBased = "Time-based"
+
+    var displayName: String {
+        switch self {
+        case .none: return "Off"
+        case .countBased: return "Missed or failed backup"
+        case .timeBased: return "Time since successful backup"
+        }
+    }
+}
+
 enum IconState {
     case normal
     case warningDefault  // Warning state - default menu bar color (white)
@@ -198,28 +212,52 @@ class BackupMonitoringManager {
         }
     }
 
-    func getCurrentIconState(showWarningIcon: Bool, colorWarningIcon: Bool) -> IconState {
-        guard showWarningIcon && isMonitoringEnabled else { return .normal }
+    func getCurrentIconState(iconAlertMode: IconAlertMode, timeThreshold: Double) -> IconState {
+        guard iconAlertMode != .none && isMonitoringEnabled else { return .normal }
 
-        // Check all monitored devices for missed backups
-        let allMissedBackups = deviceConfigs.values
-            .filter { $0.isMonitored }
-            .compactMap { config -> Int? in
-                guard config.isOverdue else { return nil }
-                return config.missedBackupCount
+        switch iconAlertMode {
+        case .none:
+            return .normal
+
+        case .countBased:
+            // Check all monitored devices for missed backups
+            let allMissedBackups = deviceConfigs.values
+                .filter { $0.isMonitored }
+                .compactMap { config -> Int? in
+                    guard config.isOverdue else { return nil }
+                    return config.missedBackupCount
+                }
+
+            guard let maxMissedBackups = allMissedBackups.max(), maxMissedBackups > 0 else {
+                return .normal
             }
 
-        guard let maxMissedBackups = allMissedBackups.max(), maxMissedBackups > 0 else {
-            return .normal
-        }
-
-        // First check if color coding is enabled
-        if colorWarningIcon {
-            // Color coding enabled: use yellow for 1 missed, red for 2+ missed
+            // Color-code based on count: yellow for 1 missed, red for 2+ missed
             return maxMissedBackups >= 2 ? .warningRed : .warningYellow
-        } else {
-            // Color coding disabled: always show white triangle regardless of backup count
-            return .warningDefault
+
+        case .timeBased:
+            // Check all monitored devices for time since last backup
+            let allTimeSinceBackup = deviceConfigs.values
+                .filter { $0.isMonitored }
+                .compactMap { config -> TimeInterval? in
+                    guard let lastBackupDate = config.lastBackupDate else { return nil }
+                    return Date().timeIntervalSince(lastBackupDate)
+                }
+
+            guard let maxTimeSinceBackup = allTimeSinceBackup.max() else {
+                return .normal
+            }
+
+            let thresholdSeconds = timeThreshold * 3600 // Convert hours to seconds
+            let doubleThresholdSeconds = thresholdSeconds * 2
+
+            if maxTimeSinceBackup >= doubleThresholdSeconds {
+                return .warningRed
+            } else if maxTimeSinceBackup >= thresholdSeconds {
+                return .warningYellow
+            } else {
+                return .normal
+            }
         }
     }
 }

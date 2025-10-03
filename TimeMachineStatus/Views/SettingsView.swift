@@ -34,6 +34,8 @@ enum StorageKeys {
     static let logLevel = Key(id: "logLevel", default: Logger.Level.info)
     static let showWarningIcon = Key(id: "showWarningIcon", default: false)
     static let colorWarningIcon = Key(id: "colorWarningIcon", default: false)
+    static let iconAlertMode = Key(id: "iconAlertMode", default: IconAlertMode.none)
+    static let iconAlertTimeThreshold = Key(id: "iconAlertTimeThreshold", default: 24.0)
 }
 
 struct SettingsView: View {
@@ -76,6 +78,12 @@ struct SettingsView: View {
 
     @AppStorage(StorageKeys.colorWarningIcon.id)
     private var colorWarningIcon: Bool = StorageKeys.colorWarningIcon.default
+
+    @AppStorage(StorageKeys.iconAlertMode.id)
+    private var iconAlertMode: IconAlertMode = StorageKeys.iconAlertMode.default
+
+    @AppStorage(StorageKeys.iconAlertTimeThreshold.id)
+    private var iconAlertTimeThreshold: Double = StorageKeys.iconAlertTimeThreshold.default
 
     enum Tabs: Hashable, CaseIterable {
         case general
@@ -318,30 +326,60 @@ struct SettingsView: View {
 
     private var iconAlertSettingsSection: some View {
         Section("Icon Alerts") {
-            Toggle("Change icon when backup missed", isOn: $showWarningIcon)
-
-            if showWarningIcon {
-                Toggle("Color-code missed backups", isOn: $colorWarningIcon)
-
-                if colorWarningIcon {
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack(spacing: 8) {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .foregroundStyle(.yellow)
-                            Text("Yellow: 1 missed backup")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                        HStack(spacing: 8) {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .foregroundStyle(.red)
-                            Text("Red: 2+ missed backups")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    .padding(.leading, 8)
+            Picker("Alert mode", selection: $iconAlertMode) {
+                ForEach(IconAlertMode.allCases, id: \.self) { mode in
+                    Text(mode.displayName).tag(mode)
                 }
+            }
+            .pickerStyle(.menu)
+
+            if iconAlertMode == .countBased {
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundStyle(.yellow)
+                        Text("Yellow: 1 missed backup")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    HStack(spacing: 8) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundStyle(.red)
+                        Text("Red: 2+ missed backups")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .padding(.leading, 8)
+            }
+
+            if iconAlertMode == .timeBased {
+                HStack {
+                    Text("Alert threshold:")
+                    TextField("", value: $iconAlertTimeThreshold, format: .number)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 60)
+                        .multilineTextAlignment(.trailing)
+                    Text("hour\(Int(iconAlertTimeThreshold) == 1 ? "" : "s")")
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundStyle(.yellow)
+                        Text("Yellow: After \(Int(iconAlertTimeThreshold)) hours")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    HStack(spacing: 8) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundStyle(.red)
+                        Text("Red: After \(Int(iconAlertTimeThreshold * 2)) hours")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .padding(.leading, 8)
             }
         }
     }
